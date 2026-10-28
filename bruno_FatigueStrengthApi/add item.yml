@@ -1,0 +1,18 @@
+info:
+  name: add item
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: https://localhost:5001/weatherforecast/add/snow
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidXNlciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Imd1ZXN0IiwibmJmIjoxNzg5NjQ4ODAzLCJleHAiOjE4MjExODQ4MDMsImlzcyI6IlRNIiwiYXVkIjoiQVBJY2xpZW50cyJ9.9t19hT8gLHkOTkUhAHeW9aAqtna-4CxxcG1fPuFnofk
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

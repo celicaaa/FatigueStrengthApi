@@ -1,0 +1,6 @@
+@FatigueStrengthApi_HostAddress = http://localhost:5063
+
+GET {{FatigueStrengthApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

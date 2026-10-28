@@ -1,0 +1,30 @@
+info:
+  name: create recommendation
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: https://localhost:7147/api/OptimizationRecommendations
+  body:
+    type: json
+    data: |
+      
+      {
+        "experimentId": 1,
+        "recommendedMaterial": "PETG",
+        "recommendedLayerThickness": 0.15,
+        "recommendedInfillDensity": 90,
+        "recommendedInfillPattern": "Grid",
+        "explanation": "Пробный вариант для проверки влияния параметров печати на прогнозируемую усталостную прочность."
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidXNlciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Imd1ZXN0IiwibmJmIjoxNzkzMjA1MDQ4LCJleHAiOjE4MjQ3NDEwNDgsImlzcyI6IkFBIiwiYXVkIjoiQVBJY2xpZW50cyJ9.Y2AuBtH9gLfwFaTehrxwa_Sa5mJfl9IaTMInldmA4pk
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
