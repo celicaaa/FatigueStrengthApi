@@ -1,104 +1,89 @@
-﻿using FatigueStrengthApi.Data;
-using FatigueStrengthApi.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using FatigueStrengthApi.Contracts;
+using FatigueStrengthApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace FatigueStrengthApi.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    public class PrintExperimentsController : ControllerBase
+namespace FatigueStrengthApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class PrintExperimentsController(PrintExperimentService service)
+    : ControllerBase
+{ 
+    // GET: api/PrintExperiments
+    [HttpGet]
+    public async Task<ActionResult<List<PrintExperimentResponse>>> GetAll()
     {
-        private readonly ApplicationDbContext _context;
-
-        public PrintExperimentsController(
-            ApplicationDbContext context)
+        return Ok(await service.GetAll());
+    }
+    // GET: api/PrintExperiments/5
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<PrintExperimentResponse>> GetById(int id)
+    {
+        try
         {
-            _context = context;
+            return Ok(await service.GetById(id));
         }
-
-        // GET: api/PrintExperiments
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<PrintExperiment>>> GetAll()
+        catch (KeyNotFoundException ex)
         {
-            var experiments = await _context.PrintExperiments
-                .AsNoTracking()
-                .ToListAsync();
-
-            return Ok(experiments);
+            return NotFound(ex.Message);
         }
-
-        // GET: api/PrintExperiments/1
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<PrintExperiment>> GetById(int id)
+    }
+    // POST: api/PrintExperiments
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    public async Task<ActionResult<PrintExperimentResponse>> Create(
+        PrintExperimentRequest request)
+    {
+        try
         {
-            var experiment = await _context.PrintExperiments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == id);
-
-            if (experiment == null)
-                return NotFound();
-
-            return Ok(experiment);
-        }
-
-        // POST: api/PrintExperiments
-        [Authorize(Roles = "admin")]
-        [HttpPost]
-        public async Task<ActionResult<PrintExperiment>> Create(
-            PrintExperiment experiment)
-        {
-            _context.PrintExperiments.Add(experiment);
-            await _context.SaveChangesAsync();
+            var result = await service.Create(request);
 
             return CreatedAtAction(
                 nameof(GetById),
-                new { id = experiment.Id },
-                experiment);
+                new { id = result.Id },
+                result);
         }
-
-        // PUT: api/PrintExperiments/1
-        [Authorize(Roles = "admin")]
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(
-            int id,
-            PrintExperiment updatedExperiment)
+        catch (ValidationException ex)
         {
-            var experiment = await _context.PrintExperiments
-                .FindAsync(id);
-
-            if (experiment == null)
-                return NotFound();
-
-            experiment.MaterialType = updatedExperiment.MaterialType;
-            experiment.LayerThickness = updatedExperiment.LayerThickness;
-            experiment.InfillDensity = updatedExperiment.InfillDensity;
-            experiment.InfillPattern = updatedExperiment.InfillPattern;
-            experiment.FatigueStrength = updatedExperiment.FatigueStrength;
-            experiment.CycleCount = updatedExperiment.CycleCount;
-
-            await _context.SaveChangesAsync();
-
+            return BadRequest(ex.Message);
+        }
+    }
+    // PUT: api/PrintExperiments/5
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> Update(
+        int id,
+        PrintExperimentRequest request)
+    {
+        try
+        {
+            await service.Update(id, request);
             return NoContent();
         }
-
-        // DELETE: api/PrintExperiments/1
-        [Authorize(Roles = "admin")]
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        catch (KeyNotFoundException ex)
         {
-            var experiment = await _context.PrintExperiments
-                .FindAsync(id);
-
-            if (experiment == null)
-                return NotFound();
-
-            _context.PrintExperiments.Remove(experiment);
-            await _context.SaveChangesAsync();
-
+            return NotFound(ex.Message);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    // DELETE: api/PrintExperiments/5
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            await service.Delete(id);
             return NoContent();
         }
-
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 }

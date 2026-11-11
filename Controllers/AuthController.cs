@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿using FatigueStrengthApi.Models;
+using FatigueStrengthApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using FatigueStrengthApi.Models;
 
 namespace FatigueStrengthApi.Controllers
 {
@@ -14,38 +14,48 @@ namespace FatigueStrengthApi.Controllers
             public string password { get; set; }
         }
 
+        private readonly AuthService _service;
+
+        public AuthController(AuthService service)
+        {
+            _service = service;
+        }
+
+        // POST: api/Auth
         [HttpPost]
-        public object GetToken([FromBody] LoginData ld)
+        public IActionResult GetToken([FromBody] LoginData ld)
         {
-            var user = SharedData.Users.FirstOrDefault(
-                u => u.Login == ld.login
-            );
-
-            if (user == null || !user.CheckPassword(ld.password))
+            try
             {
-                Response.StatusCode = 401;
-                return new { message = "wrong login/password" };
+                var token = _service.Login(ld.login, ld.password);
+                return Ok(token);
             }
-
-            return AuthOptions.GenerateToken(user.IsAdmin);
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(
+                    new { message = "wrong login/password" });
+            }
         }
 
+        // GET: api/Auth/users
         [HttpGet("users")]
-        public List<User> GetUsers()
+        public ActionResult<List<User>> GetUsers()
         {
-            return SharedData.Users;
+            return Ok(_service.GetUsers());
         }
 
+        // GET: api/Auth/token
         [HttpGet("token")]
-        public object GetToken()
+        public IActionResult GetToken()
         {
-            return AuthOptions.GenerateToken();
+            return Ok(_service.GetGuestToken());
         }
 
+        // GET: api/Auth/token/secret
         [HttpGet("token/secret")]
-        public object GetAdminToken()
+        public IActionResult GetAdminToken()
         {
-            return AuthOptions.GenerateToken(true);
+            return Ok(_service.GetAdminToken());
         }
     }
 }

@@ -23,8 +23,7 @@ namespace FatigueStrengthApi
                 new Claim(ClaimsIdentity.DefaultRoleClaimType,is_admin ? "admin" : "guest")
             };
 
-            ClaimsIdentity identity =
-                new ClaimsIdentity(
+            ClaimsIdentity identity =new ClaimsIdentity(
                     claims,
                     "Token",
                     ClaimsIdentity.DefaultNameClaimType,

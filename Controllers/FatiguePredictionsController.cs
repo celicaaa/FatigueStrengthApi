@@ -1,128 +1,88 @@
-﻿using FatigueStrengthApi.Data;
-using FatigueStrengthApi.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using FatigueStrengthApi.Contracts;
 using FatigueStrengthApi.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace FatigueStrengthApi.Controllers
+namespace FatigueStrengthApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class FatiguePredictionsController(FatiguePredictionService service)
+    : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class FatiguePredictionsController : ControllerBase
+    // GET: api/FatiguePredictions
+    [HttpGet]
+    public async Task<ActionResult<List<FatiguePredictionResponse>>> GetAll()
     {
-        private readonly ApplicationDbContext _context;
-        private readonly FatiguePredictionService _predictionService;
-
-        public FatiguePredictionsController(
-            ApplicationDbContext context,
-            FatiguePredictionService predictionService)
+        return Ok(await service.GetAll());
+    }
+    // GET: api/FatiguePredictions/5
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<FatiguePredictionResponse>> GetById(int id)
+    {
+        try
         {
-            _context = context;
-            _predictionService = predictionService;
+            return Ok(await service.GetById(id));
         }
-
-        // GET: api/FatiguePredictions
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<FatiguePrediction>>> GetAll()
+        catch (KeyNotFoundException ex)
         {
-            return Ok(await _context.FatiguePredictions
-                .AsNoTracking()
-                .ToListAsync());
+            return NotFound(ex.Message);
         }
-
-        // GET: api/FatiguePredictions/1
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<FatiguePrediction>> GetById(int id)
+    }
+    // POST: api/FatiguePredictions/from-experiment/5?targetStrength=40
+    [HttpPost("from-experiment/{id:int}")]
+    [Authorize(Roles = "admin")]
+    public async Task<ActionResult<FatiguePredictionResponse>>
+        CreateFromExperiment(int id, double targetStrength)
+    {
+        try
         {
-            var prediction = await _context.FatiguePredictions
-                .FindAsync(id);
-
-            if (prediction == null)
-                return NotFound();
-
-            return Ok(prediction);
+            return Ok(await service.CreateFromExperiment(id, targetStrength));
         }
-
-        // POST: api/FatiguePredictions/from-experiment/1?targetStrength=40
-        [Authorize(Roles = "admin")]
-        [HttpPost("from-experiment/{experimentId:int}")]
-        public async Task<ActionResult<FatiguePrediction>> Create(
-            int experimentId,
-            double targetStrength)
+        catch (KeyNotFoundException ex)
         {
-            var experiment = await _context.PrintExperiments
-                .FindAsync(experimentId);
-
-            if (experiment == null)
-                return NotFound("Эксперимент не найден.");
-
-            if (targetStrength <= 0 ||
-                double.IsNaN(targetStrength) ||
-                double.IsInfinity(targetStrength))
-            {
-                return BadRequest(
-                    "Целевая прочность должна быть положительной.");
-            }
-
-            var prediction = new FatiguePrediction
-            {
-                ExperimentId = experimentId,
-                PredictedStrength =
-                    _predictionService.PredictStrength(experiment),
-                TargetStrength = targetStrength,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.FatiguePredictions.Add(prediction);
-            await _context.SaveChangesAsync();
-
-            return Ok(prediction);
+            return NotFound(ex.Message);
         }
-
-        // PUT: api/FatiguePredictions/1
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(
-            int id,
-            FatiguePrediction updatedPrediction)
+        catch (ValidationException ex)
         {
-            var prediction = await _context.FatiguePredictions
-                .FindAsync(id);
-
-            if (prediction == null)
-                return NotFound();
-
-            if (updatedPrediction.TargetStrength <= 0 ||
-                double.IsNaN(updatedPrediction.TargetStrength) ||
-                double.IsInfinity(updatedPrediction.TargetStrength))
-            {
-                return BadRequest(
-                    "Целевая прочность должна быть положительной.");
-            }
-
-            prediction.TargetStrength = updatedPrediction.TargetStrength;
-            prediction.PredictedStrength =
-                updatedPrediction.PredictedStrength;
-
-            await _context.SaveChangesAsync();
-
+            return BadRequest(ex.Message);
+        }
+    }
+    // PUT: api/FatiguePredictions/5
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> Update(
+        int id,
+        FatiguePredictionRequest request)
+    {
+        try
+        {
+            await service.Update(id, request);
+            return Ok();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    // DELETE: api/FatiguePredictions/5
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            await service.Delete(id);
             return NoContent();
         }
-
-        // DELETE: api/FatiguePredictions/1
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        catch (KeyNotFoundException ex)
         {
-            var prediction = await _context.FatiguePredictions
-                .FindAsync(id);
-
-            if (prediction == null)
-                return NotFound();
-
-            _context.FatiguePredictions.Remove(prediction);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NotFound(ex.Message);
         }
     }
 }

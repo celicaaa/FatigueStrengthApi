@@ -1,18 +1,15 @@
-﻿
-namespace FatigueStrengthApi.Models
+﻿namespace FatigueStrengthApi.Models
 {
     public class PrintExperiment
     {
         public int Id { get; set; }
         public string MaterialType { get; set; } = string.Empty;
-        public double LayerThickness { get; set; }
-        public double InfillDensity { get; set; }
-        public string InfillPattern { get; set; } = string.Empty;
-        public double? FatigueStrength { get; set; }
-        public long? CycleCount { get; set; }
-        public void RegisterTestResult(
-            double fatigueStrength,
-            long cycleCount)
+        public double LayerThickness { get; set; } //Толщина слоя
+        public double InfillDensity { get; set; } //Плотность заполнения
+        public string InfillPattern { get; set; } = string.Empty; //Тип заполнения
+        public double? FatigueStrength { get; set; } //Усталостная прочность
+        public long? CycleCount { get; set; } //Количество циклов нагружения
+        public void RegisterTestResult(double fatigueStrength,long cycleCount)
         {
             if (fatigueStrength <= 0)
                 throw new ArgumentException(
@@ -28,8 +25,7 @@ namespace FatigueStrengthApi.Models
 
         public bool HasTestResult()
         {
-            return FatigueStrength.HasValue
-                && CycleCount.HasValue;
+            return FatigueStrength.HasValue && CycleCount.HasValue;
         }
     }
 }

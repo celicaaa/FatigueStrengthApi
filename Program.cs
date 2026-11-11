@@ -1,11 +1,10 @@
-using FatigueStrengthApi.Services;
+using FatigueStrengthApi;
 using FatigueStrengthApi.Data;
 using FatigueStrengthApi.Models;
+using FatigueStrengthApi.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using FatigueStrengthApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +16,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Подключаем сервис прогнозирования
+// Регистрируем сервисы приложения
 builder.Services.AddScoped<FatiguePredictionService>();
+builder.Services.AddScoped<PrintExperimentService>();
+builder.Services.AddScoped<OptimizationRecommendationsService>();
+builder.Services.AddScoped<ReportsService>();
+builder.Services.AddScoped<AuthService>();
 
 // Настраиваем проверку JWT-токенов
 builder.Services.AddAuthentication(
@@ -43,12 +46,14 @@ builder.Services.AddAuthentication(
 
 var app = builder.Build();
 
+// Перенаправление на HTTPS
 app.UseHttpsRedirection();
 
 // Сначала проверяем токен, затем права доступа
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Подключаем контроллеры
 app.MapControllers();
 
 app.Run();
